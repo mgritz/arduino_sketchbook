@@ -37,8 +37,10 @@ void loop() {
     digitalWrite(rowPins[row], LOW);
     for (int col = 0; col < NUM_COLS; col++)
       if (digitalRead(colPins[col]) == LOW)
+      {
         Serial.print(keycodes[row][col]);
-        
+        while(digitalRead(colPins[col]) == LOW);
+      }
     digitalWrite(rowPins[row], HIGH);
   }
   
