@@ -54,7 +54,7 @@ char poll_keyboard() {
 
 //##################################################
 //################# Status LEDs ####################
-const int sled_rd = 4;
+const int sled_rd = 13;
 const int sled_ye = 3;
 
 void setup_status_leds() {
@@ -101,9 +101,100 @@ typedef enum {
 } states_type;
 
 states_type Door_state;
-char input[10] = "";
+char input[12] = "";
 int index = 0;
-bool server_key_is_valid = false;
+
+typedef enum {
+  KEY_NONE,
+  KEY_VALID,
+  KEY_INVALID
+} server_key_state_type;
+
+server_key_state_type server_key_state = KEY_NONE;
+
+//##################################################
+//################# 1Wire Stuff ####################
+//+++++++++++++++++ Protocol +++++++++++++++++++++++
+const byte door_ms_alive = 0x07;    // BEL (keepalive)
+const byte door_ms_key_ok = 0x18;   // CAN (key good)
+const byte door_ms_key_inv = 0x15;  // NAK (key bad)
+const byte door_ms_say = 0x16;      // SYN (read key)
+const byte door_sm_open = 0x11;     // DC1 (door opened)
+const byte door_sm_ack = 0x06;      // ACK (door ok)
+//+++++++++++++++++ Driver +++++++++++++++++++++++++
+const int w1_gpio = 4;
+// my address is 0xEA1DEADBEEF666?
+const byte w1_id[7] = { 
+  0xEA, 0x1D, 0xEA, 0xDB, 0xEE, 0xF6, 0x66 
+};
+
+typedef enum {
+  W1_WAIT_RESET,
+  W1_NORMAL
+} w1_state_type;
+
+w1_state_type w1_state = W1_WAIT_RESET;
+long unsigned int w1_keepalive_expire;
+const long unsigned int W1_KEEPALIVE_INTERVAL = 5000;
+
+// rx callback
+void w1_rx_cb(OneWireSlave::ReceiveEvent e, byte d) {
+
+  // wait for recovery
+  if( (w1_state == W1_WAIT_RESET) 
+    && (e != OneWireSlave::RE_Reset) )
+    return;
+  
+  switch(e){
+    case OneWireSlave::RE_Byte:{
+      // received byte
+      switch(d){
+        
+        case door_ms_alive:
+          w1_keepalive_expire = millis() + W1_KEEPALIVE_INTERVAL;
+          if(Door_state == DOOR_OPENED)
+            OWSlave.beginWrite(&door_sm_open, 1, 0);
+          else
+            OWSlave.beginWrite(&door_sm_ack, 1, 0);
+          break;
+          
+        case door_ms_key_ok:
+          if(server_key_state == KEY_NONE)
+            server_key_state = KEY_VALID;
+          break;
+          
+        case door_ms_key_inv:
+          if(server_key_state == KEY_NONE)
+            server_key_state = KEY_INVALID;
+          break;
+        
+        case door_ms_say:
+        if(Door_state == KEY_ENTERED)
+          OWSlave.beginWrite((const byte*)input, 12, 0);
+        else
+          OWSlave.beginWrite(&door_sm_open, 1, 0);
+      }
+      
+    }
+    break;
+    
+    case OneWireSlave::RE_Reset:{
+      w1_state = W1_NORMAL;
+      w1_keepalive_expire = millis() + W1_KEEPALIVE_INTERVAL;
+    }
+    break;
+    
+    case OneWireSlave::RE_Error:{
+      
+    }
+    break;
+  }
+}
+
+void setup_w1_slave() {
+  OWSlave.setReceiveCallback(&w1_rx_cb);
+  OWSlave.begin(w1_id, w1_gpio);
+}
 
 //##################################################
 //################# SETUP ##########################
@@ -133,7 +224,7 @@ void loop() {
 
         if(true)
         {
-          server_key_is_valid = false;
+          server_key_state = KEY_NONE;
           
           Door_state = WAIT_LEAVE;
           Serial.print("state WAIT_LEAVE\n");
@@ -213,7 +304,7 @@ void loop() {
       {
         digitalWrite(sled_ye, LOW);
         input[index++] = keycode;
-        if ((keycode == 'D') || (index == 9))
+        if ((keycode == 'D') || (index == 10))
         {
           input[index] = '\0';
           index = 0;
@@ -242,15 +333,16 @@ void loop() {
       // TODO make server check the key
       const char password[] = "1234D";
       if(strcmp(password, input) == 0)
-        server_key_is_valid = true;
+        server_key_state = KEY_VALID;
 
-      if(server_key_is_valid)
+      if(server_key_state == KEY_VALID)
       {
         Door_state = IDLE_DISARMED;
         Serial.print("state IDLE_DISARMED\n");
         flash_led(sled_ye, 1, 1000);
       } else {
         Door_state = DOOR_OPENED;
+        server_key_state = KEY_NONE;
         Serial.print("state DOOR_OPENED\n");
         flash_led(sled_ye, 8, 50);
       }
