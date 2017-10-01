@@ -1,0 +1,3 @@
+[submodule "libraries/OneWireArduinoSlave"]
+	path = libraries/OneWireArduinoSlave
+	url = https://github.com/neuoy/OneWireArduinoSlave.git
