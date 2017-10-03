@@ -101,7 +101,7 @@ typedef enum {
 } states_type;
 
 states_type Door_state;
-char input[12] = "";
+char input[9] = "";
 int index = 0;
 
 typedef enum {
@@ -170,7 +170,7 @@ void w1_rx_cb(OneWireSlave::ReceiveEvent e, byte d) {
         
         case door_ms_say:
         if(Door_state == KEY_ENTERED)
-          OWSlave.beginWrite((const byte*)input, 12, 0);
+          OWSlave.beginWrite((const byte*)input, 9, 0);
         else
           OWSlave.beginWrite(&door_sm_open, 1, 0);
       }
@@ -304,7 +304,7 @@ void loop() {
       {
         digitalWrite(sled_ye, LOW);
         input[index++] = keycode;
-        if ((keycode == 'D') || (index == 10))
+        if ((keycode == 'D') || (index == 7))
         {
           input[index] = '\0';
           index = 0;
