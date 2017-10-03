@@ -206,10 +206,28 @@ void setup() {
   Door_state = IDLE_DISARMED;
   Serial.print("setup complete\n");
   Serial.print("state IDLE_DISARMED\n");
+  setup_w1_slave();
 }
 //##################################################
 //################# RUN ############################
 void loop() {
+
+  static w1_state_type w1_dbg_state_last = W1_WAIT_RESET;
+  static byte w1_dbg_rx_last = 0;
+
+  if(w1_dbg_state_last != w1_state){
+    w1_dbg_state_last = w1_state;
+    Serial.print("W1 s: ");
+    Serial.print(w1_state);
+    Serial.write('\n');
+  }
+
+  if(w1_dbg_rx_last != w1_rx_char){
+    w1_dbg_rx_last = w1_rx_char;
+    Serial.print("W1 c: ");
+    Serial.print(w1_rx_char, HEX);
+    Serial.write('\n');
+  }
   
   switch(Door_state){
     // Disarmed state. Blink LED from time to time
