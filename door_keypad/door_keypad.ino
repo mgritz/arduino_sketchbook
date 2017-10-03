@@ -55,7 +55,7 @@ char poll_keyboard() {
 //##################################################
 //################# Status LEDs ####################
 const int sled_rd = 13;
-const int sled_ye = 3;
+const int sled_ye = 4;
 
 void setup_status_leds() {
   pinMode(sled_rd, OUTPUT);
@@ -122,7 +122,7 @@ const byte door_ms_say = 0x16;      // SYN (read key)
 const byte door_sm_open = 0x11;     // DC1 (door opened)
 const byte door_sm_ack = 0x06;      // ACK (door ok)
 //+++++++++++++++++ Driver +++++++++++++++++++++++++
-const int w1_gpio = 4;
+const int w1_gpio = 3;
 // my address is 0xEA1DEADBEEF666?
 const byte w1_id[7] = { 
   0xEA, 0x1D, 0xEA, 0xDB, 0xEE, 0xF6, 0x66 
