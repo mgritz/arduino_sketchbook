@@ -118,14 +118,14 @@ server_key_state_type server_key_state = KEY_NONE;
 const byte door_ms_alive = 0x07;    // BEL (keepalive)
 const byte door_ms_key_ok = 0x18;   // CAN (key good)
 const byte door_ms_key_inv = 0x15;  // NAK (key bad)
-const byte door_ms_say = 0x16;      // SYN (read key)
+const byte door_ms_say = 0xbe;      // SYN (read key)
 const byte door_sm_open = 0x11;     // DC1 (door opened)
 const byte door_sm_ack = 0x06;      // ACK (door ok)
 //+++++++++++++++++ Driver +++++++++++++++++++++++++
 const int w1_gpio = 3;
-// my address is 0xEA1DEADBEEF666?
+// my address is DE-ADBEEFDEAD66?
 const byte w1_id[7] = { 
-  0xEA, 0x1D, 0xEA, 0xDB, 0xEE, 0xF6, 0x66 
+  0xDE, 0xAD, 0xBE, 0xEF, 0xDE, 0xAD, 0x66 
 };
 
 typedef enum {
@@ -137,19 +137,19 @@ w1_state_type w1_state = W1_WAIT_RESET;
 long unsigned int w1_keepalive_expire;
 const long unsigned int W1_KEEPALIVE_INTERVAL = 5000;
 
+byte w1_rx_char = 0;
+
 // rx callback
 void w1_rx_cb(OneWireSlave::ReceiveEvent e, byte d) {
-
-  // wait for recovery
-  if( (w1_state == W1_WAIT_RESET) 
-    && (e != OneWireSlave::RE_Reset) )
-    return;
   
   switch(e){
     case OneWireSlave::RE_Byte:{
-      // received byte
+      if (w1_state == W1_WAIT_RESET){
+        return;
+      }
+      
       switch(d){
-        
+        w1_rx_char = d;
         case door_ms_alive:
           w1_keepalive_expire = millis() + W1_KEEPALIVE_INTERVAL;
           if(Door_state == DOOR_OPENED)
@@ -185,7 +185,7 @@ void w1_rx_cb(OneWireSlave::ReceiveEvent e, byte d) {
     break;
     
     case OneWireSlave::RE_Error:{
-      
+      //w1_state = W1_WAIT_RESET;
     }
     break;
   }
