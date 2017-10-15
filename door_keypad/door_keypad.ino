@@ -41,15 +41,29 @@ char poll_keyboard() {
       if (digitalRead(colPins[col]) == LOW)
       {
         while(digitalRead(colPins[col]) == LOW);
-        Serial.print('[');
-        Serial.print(keycodes[row][col]);
-        Serial.print("]\n");
         return keycodes[row][col];
       }
     digitalWrite(rowPins[row], HIGH);
   }
   return -1;
 }
+
+//##################################################
+//################# coms stuff #####################
+//+++++++++++++++++ Protocol +++++++++++++++++++++++
+const byte door_ms_alive = 'S';   // SYN, keepalive
+const byte door_sm_ack = 'K';     // ACK, + door flag
+// keys are represented by their actual ASCII char
+const byte door_ms_key_res = 'R'; // key eval + flag
+//+++++++++++++++++ Driver +++++++++++++++++++++++++
+// We are running the standard serial interface 
+// driver @ 
+#define SERIAL_BOUDRATE 1200
+// boud. The Server is required to transmit a
+// keepalive every
+#define SERIAL_KEEPALIVE_PERIODE 10000
+// milliseconds.
+unsigned long serial_keepalive_next_timeout = SERIAL_KEEPALIVE_PERIODE;
 
 //##################################################
 //################# Status LEDs ####################
@@ -72,10 +86,20 @@ void flash_led(int led, int code, int interval) {
   }
 }
 
-unsigned long next_flash;
-const unsigned long IDLE_FLASH_PERIOD = 3000;
-const unsigned long ARMED_FLASH_PERIOD = 1500;
-const unsigned long INTRUDER_FLASH_PERIOD = 500;
+const unsigned long LED_UPDATE_CYCLE = 1000;
+void operate_status_led(){
+  static unsigned long next_flash = LED_UPDATE_CYCLE;
+  // time to flash LED
+  if (next_flash < millis()){
+    // keepalive timed out.
+    if (serial_keepalive_next_timeout < millis())
+      digitalWrite(sled_rd, HIGH);
+    else{
+      flash_led(sled_rd, 1, 100);
+    }
+    next_flash = millis() + LED_UPDATE_CYCLE;
+  }
+}
 
 //##################################################
 //################# Door contact ###################
@@ -90,197 +114,62 @@ bool door_is_open() {
 }
 
 //##################################################
-//################# Keypad State Machine ###########
-typedef enum {
-  IDLE_DISARMED,
-  WAIT_LEAVE,
-  IDLE_ARMED,
-  DOOR_OPENED,
-  KEY_ENTERED
-} states_type;
-
-states_type Door_state;
-char input[9] = "";
-int index = 0;
-
-typedef enum {
-  KEY_NONE,
-  KEY_VALID,
-  KEY_INVALID
-} server_key_state_type;
-
-server_key_state_type server_key_state = KEY_NONE;
-
-//##################################################
-//################# coms stuff #####################
-//+++++++++++++++++ Protocol +++++++++++++++++++++++
-const byte door_ms_alive = 0x07;    // BEL (keepalive)
-const byte door_ms_key_ok = 0x18;   // CAN (key good)
-const byte door_ms_key_inv = 0x15;  // NAK (key bad)
-const byte door_ms_say = 0x16;      // SYN (read key)
-const byte door_sm_open = 0x11;     // DC1 (door opened)
-const byte door_sm_ack = 0x06;      // ACK (door ok)
-//+++++++++++++++++ Driver +++++++++++++++++++++++++
-
-
-//##################################################
 //################# SETUP ##########################
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(SERIAL_BOUDRATE);
   setup_keyboard();
   setup_status_leds();
   setup_switch();
-  Door_state = IDLE_DISARMED;
-  Serial.print("setup complete\n");
-  Serial.print("state IDLE_DISARMED\n");
 }
 //##################################################
 //################# RUN ############################
 void loop() {
+  static bool door_was_open = false;
+  static bool next_is_key_byte = false;
   
-  switch(Door_state){
-    // Disarmed state. Blink LED from time to time
-    // and wait for input.
-    case IDLE_DISARMED:{
-      char keycode = poll_keyboard();
-      
-      // arm alarm
-      if (keycode == 'A'){
+  // show status LED if needed, take care of
+  // server disconnecting
+  operate_status_led();
 
-        // TODO check if server is connected.
-
-        if(true)
-        {
-          server_key_state = KEY_NONE;
-          
-          Door_state = WAIT_LEAVE;
-          Serial.print("state WAIT_LEAVE\n");
-          digitalWrite(sled_rd, HIGH);
-          flash_led(sled_ye, 3, 100);
-        } else {
-          flash_led(sled_ye, 8, 50);
-          flash_led(sled_rd, 3, 100);
-        }
-      }
-
-      // blink status led
-      if (millis() > next_flash)
-      {
-
-        // TODO periodically check if server is connected.
-
-        if(true)
-          flash_led(sled_rd, 1, 250);
-        else
-          flash_led(sled_rd, 3, 100);
-        next_flash = millis() + IDLE_FLASH_PERIOD;
-      }
-    }
-    break;
-
-    // After alarm is armed, wait for person to leave.
-    case WAIT_LEAVE:{
-      // Wait for door to be opened and closed again.
-      Serial.print("waiting for door to be opened.\n");
-      while(!door_is_open())
-        delay(50);
-      Serial.print("waiting for door to be closed.\n");
-      while(door_is_open())
-        delay(50);
-
-      Door_state = IDLE_ARMED;
-      Serial.print("state IDLE_ARMED\n");
-      digitalWrite(sled_rd, LOW);
-    }
-    break;
-
-    // Armed state. Blink LED from time to time and
-    // wait for door being opened.
-    case IDLE_ARMED:{
-      if (door_is_open())
-      {
-
-        // TODO notfy server about door open
-        
-        Door_state = DOOR_OPENED;
-        Serial.print("state DOOR_OPENED\n");
-        next_flash = millis() + INTRUDER_FLASH_PERIOD;
-      }
-
-      // blink status led
-      if (millis() > next_flash)
-      {
-
-        // TODO periodically check if server is connected.
-
-        if(true)
-          flash_led(sled_rd, 1, 250);
-        else
-          flash_led(sled_rd, 3, 100);
-        next_flash = millis() + ARMED_FLASH_PERIOD;
-      }
-    }
-    break;
-
-    // Door has been opened. Listen to keyboard inputs.
-    case DOOR_OPENED:{
-      
-      digitalWrite(sled_ye, HIGH);
-      char keycode = poll_keyboard();
-      if(keycode != -1)
-      {
-        digitalWrite(sled_ye, LOW);
-        input[index++] = keycode;
-        if ((keycode == 'D') || (index == 7))
-        {
-          input[index] = '\0';
-          index = 0;
-
-          // TODO send key to server
-          Serial.print(input);
-          Serial.print(" has been sent to server for checking.\n");
-          
-          Door_state = KEY_ENTERED;
-          Serial.print("state KEY_ENTERED\n");
-        }
-      }
-      
-      // blink status led
-      if (millis() > next_flash)
-      {
-        flash_led(sled_rd, 1, 250);
-        next_flash = millis() + INTRUDER_FLASH_PERIOD;
-      }
-    }
-    break;
-
-    // Key has been entered. Wait for response from server.
-    case KEY_ENTERED:{
-
-      // TODO make server check the key
-      const char password[] = "1234D";
-      if(strcmp(password, input) == 0)
-        server_key_state = KEY_VALID;
-
-      if(server_key_state == KEY_VALID)
-      {
-        Door_state = IDLE_DISARMED;
-        Serial.print("state IDLE_DISARMED\n");
-        flash_led(sled_ye, 1, 1000);
-      } else {
-        Door_state = DOOR_OPENED;
-        server_key_state = KEY_NONE;
-        Serial.print("state DOOR_OPENED\n");
-        flash_led(sled_ye, 8, 50);
-      }
-
-      // blink status led
-      if (millis() > next_flash)
-      {
-        flash_led(sled_rd, 1, 250);
-        next_flash = millis() + INTRUDER_FLASH_PERIOD;
-      }
-    }
-    break;
+  // handle keyboard and send code
+  char keycode = poll_keyboard();
+  if (keycode != -1){
+    Serial.write(keycode);
+    flash_led(sled_ye, 1, 50);
   }
+
+  // check if door has been opened
+  if ((!door_was_open) && (door_is_open())){
+    char resp[2] = {door_sm_ack, 0x01};
+    Serial.write(resp, 2);
+  }
+  door_was_open = door_is_open();
+
+  // handle received bytes
+  for (int r = 0; (r < 10) && (Serial.available() > 0); ++r) {  
+    byte rx = Serial.read();
+    if (rx == -1) break;
+
+    if(rx == door_ms_alive){
+      // keepalive from server, respond with door state
+        char resp[2] = {door_sm_ack, 0x00};
+        resp[1] = door_is_open();
+        Serial.write(resp, 2);
+
+        serial_keepalive_next_timeout = millis() 
+              + SERIAL_KEEPALIVE_PERIODE;
+    } else if (rx == door_ms_key_res){
+      // door key result, display as LED code
+      next_is_key_byte = true;
+    } else if (next_is_key_byte){
+      if (rx == 0){      
+        flash_led(sled_ye, 8, 50);
+      } else if (rx == 1) {
+        flash_led(sled_ye, 2, 250);
+      }
+      next_is_key_byte = false;
+    }
+  }
+  delay(2);
 }
+
