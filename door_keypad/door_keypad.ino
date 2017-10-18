@@ -1,5 +1,3 @@
-#include <LowLevel.h>
-
 /*
 
 Door Keypad for primitive house alarm.
