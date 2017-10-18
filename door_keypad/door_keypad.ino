@@ -70,6 +70,9 @@ unsigned long serial_keepalive_next_timeout = SERIAL_KEEPALIVE_PERIODE;
 const int sled_rd = 13;
 const int sled_ye = 4;
 
+const int beeper = 3;
+bool beeper_active = false;
+
 void setup_status_leds() {
   pinMode(sled_rd, OUTPUT);
   pinMode(sled_ye, OUTPUT);
@@ -96,6 +99,11 @@ void operate_status_led(){
       digitalWrite(sled_rd, HIGH);
     else{
       flash_led(sled_rd, 1, 100);
+    }
+    if (beeper_active){
+      analogWrite(beeper, 127);
+      delay(250);
+      analogWrite(beeper, 0);
     }
     next_flash = millis() + LED_UPDATE_CYCLE;
   }
@@ -136,6 +144,7 @@ void loop() {
   if (keycode != -1){
     Serial.write(keycode);
     flash_led(sled_ye, 1, 50);
+    beeper_active = false;
   }
 
   // check if door has been opened
@@ -166,6 +175,9 @@ void loop() {
         flash_led(sled_ye, 8, 50);
       } else if (rx == 1) {
         flash_led(sled_ye, 2, 250);
+        beeper_active = false;
+      } else if (rx == 2) {
+        beeper_active = true;
       }
       next_is_key_byte = false;
     }
