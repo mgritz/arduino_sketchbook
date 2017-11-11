@@ -68,7 +68,7 @@ unsigned long serial_keepalive_next_timeout = SERIAL_KEEPALIVE_PERIODE;
 const int sled_rd = 13;
 const int sled_ye = 4;
 
-const int beeper = 3;
+const int beeper = 14;
 bool beeper_active = false;
 
 void setup_status_leds() {
