@@ -199,6 +199,7 @@ void loop() {
   uint32_t nfc_key = nfc_waitCard();
   if (nfc_key != 0){
     // write key as string and add 'D' for disarm
+    Serial.print('C');
     Serial.print(nfc_key);
     Serial.print('D');
   }
