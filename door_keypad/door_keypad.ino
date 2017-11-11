@@ -1,3 +1,5 @@
+#include <Adafruit_PN532.h>
+
 /*
 
 Door Keypad for primitive house alarm.
@@ -120,12 +122,60 @@ bool door_is_open() {
 }
 
 //##################################################
+//################# NFC reader #####################
+#define PN532_IRQ   (3)
+#define PN532_RESET (17)
+
+Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
+bool nfc_connected = false;
+
+void setup_nfc(){
+  nfc.begin();
+  nfc_connected = (nfc.getFirmwareVersion() != 0);
+  // configure board to read RFID tags
+  if (nfc_connected)
+    nfc.SAMConfig();
+}
+
+// returns 0 if no card has been received.
+// Otherwise, returns the card's 4-byte-UID converted
+// little-endian to uint32_t
+uint32_t nfc_waitCard(){
+  static uint32_t last_nfc_key = 0;
+  static unsigned long forget_timeout = 0;
+  
+  if (!nfc_connected) 
+    return 0;
+
+  uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };
+  uint8_t uidLength;
+  uint8_t keyuniversal[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+  
+  uint8_t success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength, 100);
+
+  if(success && (uidLength == 4)){
+    // We probably have a Mifare Classic.
+    uint32_t new_key = *((uint32_t*)uid);
+
+    // check if this is new card and return value
+    if((new_key != last_nfc_key) || (millis() >= forget_timeout)){
+      last_nfc_key = new_key;
+      forget_timeout = millis() + 5000;
+      return new_key;
+    }
+  }
+
+  return 0;
+}
+
+//##################################################
 //################# SETUP ##########################
 void setup() {
   Serial.begin(SERIAL_BOUDRATE);
   setup_keyboard();
   setup_status_leds();
   setup_switch();
+  setup_nfc();
 }
 //##################################################
 //################# RUN ############################
@@ -143,6 +193,14 @@ void loop() {
     Serial.write(keycode);
     flash_led(sled_ye, 1, 50);
     beeper_active = false;
+  }
+
+  // handle NFC card being placed on reader
+  uint32_t nfc_key = nfc_waitCard();
+  if (nfc_key != 0){
+    // write key as string and add 'D' for disarm
+    Serial.print(nfc_key);
+    Serial.print('D');
   }
 
   // check if door has been opened
