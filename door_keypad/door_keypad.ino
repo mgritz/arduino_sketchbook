@@ -119,7 +119,7 @@ void setup_switch() {
 }
 
 bool door_is_open() {
-  return (digitalRead(door_switch) == LOW);
+  return (digitalRead(door_switch) == HIGH);
 }
 
 //##################################################
