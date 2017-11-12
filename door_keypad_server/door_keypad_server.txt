@@ -1,0 +1,2048 @@
+[
+    {
+        "id": "f5b02b67.d538a8",
+        "type": "subflow",
+        "name": "Read Keypad or NFC",
+        "info": "",
+        "in": [
+            {
+                "x": 60,
+                "y": 120,
+                "wires": [
+                    {
+                        "id": "379181a4.93297e"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 980,
+                "y": 120,
+                "wires": [
+                    {
+                        "id": "25c537ba.d30c48",
+                        "port": 0
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "25c537ba.d30c48",
+        "type": "join",
+        "z": "f5b02b67.d538a8",
+        "name": "combine PIN",
+        "mode": "custom",
+        "build": "string",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "",
+        "joinerType": "str",
+        "accumulate": false,
+        "timeout": "",
+        "count": "",
+        "x": 850,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c427975.ba8e968",
+        "type": "change",
+        "z": "f5b02b67.d538a8",
+        "name": "set msg.complete",
+        "rules": [
+            {
+                "t": "set",
+                "p": "complete",
+                "pt": "msg",
+                "to": "true",
+                "tot": "bool"
+            },
+            {
+                "t": "delete",
+                "p": "payload",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 670,
+        "y": 100,
+        "wires": [
+            [
+                "25c537ba.d30c48"
+            ]
+        ]
+    },
+    {
+        "id": "379181a4.93297e",
+        "type": "function",
+        "z": "f5b02b67.d538a8",
+        "name": "HEX to ASCII",
+        "func": "msg.payload = hex2a(msg.payload);\nreturn msg;\n\n\nfunction hex2a(hexx) {\n    var hex = hexx.toString();//force conversion\n    var str = '';\n    for (var i = 0; i < hex.length; i += 2)\n        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));\n    return str;\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 190,
+        "y": 120,
+        "wires": [
+            [
+                "f0c7af9d.d25ee"
+            ]
+        ]
+    },
+    {
+        "id": "f0c7af9d.d25ee",
+        "type": "switch",
+        "z": "f5b02b67.d538a8",
+        "name": "split 'D' and remove 'K'",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "D",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "K",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 3,
+        "x": 400,
+        "y": 120,
+        "wires": [
+            [
+                "c427975.ba8e968"
+            ],
+            [],
+            [
+                "25c537ba.d30c48"
+            ]
+        ]
+    },
+    {
+        "id": "334c1143.5d81fe",
+        "type": "tab",
+        "label": "Alarmanlage Main",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "64f5a0a6.fbe15",
+        "type": "function",
+        "z": "334c1143.5d81fe",
+        "name": "insert 'S'",
+        "func": "msg.payload = 'S';\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 560,
+        "y": 360,
+        "wires": [
+            [
+                "43f3a778.0d0928"
+            ]
+        ]
+    },
+    {
+        "id": "e80556e1.b48a08",
+        "type": "inject",
+        "z": "334c1143.5d81fe",
+        "name": "tick every 2 sec",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "2",
+        "crontab": "",
+        "once": false,
+        "x": 389,
+        "y": 360.0000009536743,
+        "wires": [
+            [
+                "64f5a0a6.fbe15"
+            ]
+        ]
+    },
+    {
+        "id": "43f3a778.0d0928",
+        "type": "serial out",
+        "z": "334c1143.5d81fe",
+        "name": "serial-TX",
+        "serial": "ff344068.d0eaa",
+        "x": 748,
+        "y": 359,
+        "wires": []
+    },
+    {
+        "id": "49c20f48.9e1f7",
+        "type": "serial in",
+        "z": "334c1143.5d81fe",
+        "name": "serial-RX",
+        "serial": "ff344068.d0eaa",
+        "x": 330,
+        "y": 480,
+        "wires": [
+            [
+                "6ed1f5.48402e0c",
+                "d387ead3.d01188"
+            ]
+        ]
+    },
+    {
+        "id": "6ed1f5.48402e0c",
+        "type": "function",
+        "z": "334c1143.5d81fe",
+        "name": "ASCII to HEX",
+        "func": "var rxString = msg.payload;\nvar rxHex = (\"0\" + rxString.charCodeAt(0).toString(16)).slice(-2);\nmsg.payload = rxHex;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 520,
+        "y": 480,
+        "wires": [
+            [
+                "9f0d6024.c497b"
+            ]
+        ]
+    },
+    {
+        "id": "9f0d6024.c497b",
+        "type": "function",
+        "z": "334c1143.5d81fe",
+        "name": "combine '4Bxx'",
+        "func": "context.state = context.state || 0;\n\n// if '4b' -> set to combine state\nif (msg.payload == '4b')\n{\n    context.state = 1;\n    return null;\n}\n// if combine state -> prepend '4b'\nelse if ( context.state == 1 && ( msg.payload == 00 || msg.payload == 01) )\n{\n    msg.payload = '4B' + msg.payload;\n    context.state = 0;\n    return msg;\n}\n// all other msgs are returned as they are\nelse\n{\n    return msg;\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 690,
+        "y": 480,
+        "wires": [
+            [
+                "585f0f08.e74d2",
+                "24bd2d55.4a5832"
+            ]
+        ]
+    },
+    {
+        "id": "ba33abcc.3b0e38",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "KEY file contains PIN?",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "pin",
+                "vt": "flow"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 1,
+        "x": 1170,
+        "y": 980,
+        "wires": [
+            [
+                "47304447.ffbd0c"
+            ]
+        ]
+    },
+    {
+        "id": "e31b1390.1ef7",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "korrekt",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "PIN korrekt",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1620,
+        "y": 960,
+        "wires": [
+            [
+                "6b467a74.452004",
+                "2378747.c9b378c",
+                "88ab45f7.fc7e08"
+            ]
+        ]
+    },
+    {
+        "id": "d634962f.11e3f8",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "falsch",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "PIN falsch",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1610,
+        "y": 1080,
+        "wires": [
+            [
+                "a59fcc08.ee963",
+                "9da858ed.408188",
+                "b28f6277.81758",
+                "9d72d083.127b2"
+            ]
+        ]
+    },
+    {
+        "id": "165c613e.3775df",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "state = prearmed",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "flow",
+                "to": "prearmed",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "pri armt",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1040,
+        "y": 560,
+        "wires": [
+            [
+                "3863b809.28d988"
+            ]
+        ]
+    },
+    {
+        "id": "6b467a74.452004",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "reset alarm trigger",
+        "rules": [
+            {
+                "t": "set",
+                "p": "reset",
+                "pt": "msg",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1810,
+        "y": 920,
+        "wires": [
+            [
+                "3e448d18.f5fce2"
+            ]
+        ]
+    },
+    {
+        "id": "1dd0ad1.4717953",
+        "type": "serial out",
+        "z": "334c1143.5d81fe",
+        "name": "LED flash",
+        "serial": "ff344068.d0eaa",
+        "x": 2260,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "6c98b18.b578e5",
+        "type": "function",
+        "z": "334c1143.5d81fe",
+        "name": "HEX to ASCII",
+        "func": "msg.payload = hex2a(msg.payload);\nreturn msg;\n\n\nfunction hex2a(hexx) {\n    var hex = hexx.toString();//force conversion\n    var str = '';\n    for (var i = 0; i < hex.length; i += 2)\n        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));\n    return str;\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 2110,
+        "y": 360,
+        "wires": [
+            [
+                "1dd0ad1.4717953"
+            ]
+        ]
+    },
+    {
+        "id": "ff1c15e8.0e3a48",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "state == prearmed?",
+        "property": "state",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "prearmed",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 2,
+        "x": 510,
+        "y": 680,
+        "wires": [
+            [
+                "77534500.b16ffc"
+            ],
+            [
+                "bb1fc54e.304248"
+            ]
+        ]
+    },
+    {
+        "id": "77534500.b16ffc",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "(Tür zu?) oder ('D')",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "4B00",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "44",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 2,
+        "x": 800,
+        "y": 680,
+        "wires": [
+            [
+                "e0f4cbd1.0d0988"
+            ],
+            [
+                "bbe6239e.5de2"
+            ]
+        ]
+    },
+    {
+        "id": "bbe6239e.5de2",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "state = disarmed",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "flow",
+                "to": "disarmed",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "diss-armt",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1040,
+        "y": 700,
+        "wires": [
+            [
+                "a4923aed.f91958"
+            ]
+        ]
+    },
+    {
+        "id": "e0f4cbd1.0d0988",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "state = armed",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "flow",
+                "to": "armed",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "Die Alarmanlage ist nun scharf",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1030,
+        "y": 660,
+        "wires": [
+            [
+                "dcb4fb88.82a368"
+            ]
+        ]
+    },
+    {
+        "id": "bb1fc54e.304248",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "state == armed?",
+        "property": "state",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "armed",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 2,
+        "x": 490,
+        "y": 760,
+        "wires": [
+            [
+                "1a59d5f9.9bc5ba"
+            ],
+            [
+                "a8005957.c979c8"
+            ]
+        ]
+    },
+    {
+        "id": "585f0f08.e74d2",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "state == disarmed?",
+        "property": "state",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "disarmed",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 2,
+        "x": 500,
+        "y": 600,
+        "wires": [
+            [
+                "e6f8e8ce.1c9118",
+                "718a62aa.6fc40c"
+            ],
+            [
+                "ff1c15e8.0e3a48"
+            ]
+        ]
+    },
+    {
+        "id": "e6f8e8ce.1c9118",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "payload == 'A'?",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "41",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 1,
+        "x": 790,
+        "y": 560,
+        "wires": [
+            [
+                "165c613e.3775df"
+            ]
+        ]
+    },
+    {
+        "id": "63188f0.632547",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "ERROR: unknown state",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "Fehler",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "ERROR: unknown state",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 500,
+        "y": 1400,
+        "wires": [
+            [
+                "2298865d.ead76a"
+            ]
+        ]
+    },
+    {
+        "id": "1a59d5f9.9bc5ba",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "Tür auf?",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "4B01",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 1,
+        "x": 770,
+        "y": 760,
+        "wires": [
+            [
+                "359902b.71828fe"
+            ]
+        ]
+    },
+    {
+        "id": "359902b.71828fe",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "state = intruder",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "flow",
+                "to": "intruder",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "intruder",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1030,
+        "y": 760,
+        "wires": [
+            [
+                "e1b14924.016f58",
+                "f94d47a5.12f9f8",
+                "3e448d18.f5fce2"
+            ]
+        ]
+    },
+    {
+        "id": "a8005957.c979c8",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "state == intruder?",
+        "property": "state",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "intruder",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 2,
+        "x": 500,
+        "y": 840,
+        "wires": [
+            [
+                "4b651880.fc9218"
+            ],
+            [
+                "4f0b4469.21896c"
+            ]
+        ]
+    },
+    {
+        "id": "9797dba5.8e2e68",
+        "type": "function",
+        "z": "334c1143.5d81fe",
+        "name": "collect signals",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 2120,
+        "y": 420,
+        "wires": [
+            [
+                "32e93f81.a080a"
+            ]
+        ]
+    },
+    {
+        "id": "32e93f81.a080a",
+        "type": "play audio",
+        "z": "334c1143.5d81fe",
+        "name": "",
+        "voice": "0",
+        "x": 2290,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "9f640c00.8cb26",
+        "type": "inject",
+        "z": "334c1143.5d81fe",
+        "name": "State?",
+        "topic": "",
+        "payload": "state",
+        "payloadType": "flow",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "x": 1070,
+        "y": 360,
+        "wires": [
+            [
+                "9503d851.f9c158"
+            ]
+        ]
+    },
+    {
+        "id": "9503d851.f9c158",
+        "type": "debug",
+        "z": "334c1143.5d81fe",
+        "name": "",
+        "active": true,
+        "console": "false",
+        "complete": "false",
+        "x": 1370,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "94756555.1b7748",
+        "type": "inject",
+        "z": "334c1143.5d81fe",
+        "name": "initialisation",
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "x": 1090,
+        "y": 400,
+        "wires": [
+            [
+                "b96f68d1.e77b48"
+            ]
+        ]
+    },
+    {
+        "id": "e587a2f.3bc306",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "state = disarmed",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "flow",
+                "to": "disarmed",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "diss-armt",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1740,
+        "y": 400,
+        "wires": [
+            [
+                "edcd7ad9.e66638"
+            ]
+        ]
+    },
+    {
+        "id": "24bd2d55.4a5832",
+        "type": "trigger",
+        "z": "334c1143.5d81fe",
+        "op1": "",
+        "op2": "timeout",
+        "op1type": "nul",
+        "op2type": "str",
+        "duration": "10",
+        "extend": true,
+        "units": "s",
+        "reset": "",
+        "name": "arduino timeout (10s)",
+        "x": 1050,
+        "y": 480,
+        "wires": [
+            [
+                "9b8d3901.3c3448"
+            ]
+        ]
+    },
+    {
+        "id": "9b8d3901.3c3448",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "ERROR: client timeout",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "timeout",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "ERROR: client timeout",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1290,
+        "y": 480,
+        "wires": [
+            [
+                "9abe1159.2100c"
+            ]
+        ]
+    },
+    {
+        "id": "4bbeb61a.0731d8",
+        "type": "link in",
+        "z": "334c1143.5d81fe",
+        "name": "send to Arduino",
+        "links": [
+            "bdd3f9e0.00d3e8",
+            "48c388de.e15428",
+            "89fbd56b.262d78",
+            "c483dcd5.c181e"
+        ],
+        "x": 1995,
+        "y": 360,
+        "wires": [
+            [
+                "6c98b18.b578e5"
+            ]
+        ]
+    },
+    {
+        "id": "bdd3f9e0.00d3e8",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "",
+        "links": [
+            "4bbeb61a.0731d8"
+        ],
+        "x": 1305,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "e1b14924.016f58",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "'5202'",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "5202",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1220,
+        "y": 780,
+        "wires": [
+            [
+                "bdd3f9e0.00d3e8"
+            ]
+        ]
+    },
+    {
+        "id": "9da858ed.408188",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "'5202'",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "5202",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1730,
+        "y": 1100,
+        "wires": [
+            [
+                "48c388de.e15428"
+            ]
+        ]
+    },
+    {
+        "id": "48c388de.e15428",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "",
+        "links": [
+            "4bbeb61a.0731d8",
+            "17d9efb5.f346c8"
+        ],
+        "x": 1815,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "a59fcc08.ee963",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "'5200'",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "5200",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1730,
+        "y": 1060,
+        "wires": [
+            [
+                "c483dcd5.c181e"
+            ]
+        ]
+    },
+    {
+        "id": "c483dcd5.c181e",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "",
+        "links": [
+            "4bbeb61a.0731d8",
+            "17d9efb5.f346c8"
+        ],
+        "x": 1815,
+        "y": 1060,
+        "wires": []
+    },
+    {
+        "id": "2378747.c9b378c",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "'5201'",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "5201",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1750,
+        "y": 980,
+        "wires": [
+            [
+                "89fbd56b.262d78"
+            ]
+        ]
+    },
+    {
+        "id": "89fbd56b.262d78",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "",
+        "links": [
+            "4bbeb61a.0731d8",
+            "17d9efb5.f346c8"
+        ],
+        "x": 1835,
+        "y": 980,
+        "wires": []
+    },
+    {
+        "id": "965c261f.f91508",
+        "type": "e-mail",
+        "z": "334c1143.5d81fe",
+        "server": "mx.freenet.de",
+        "port": "465",
+        "secure": true,
+        "name": "christopher.feilgenhauer@gmx.de",
+        "dname": "send error mail",
+        "x": 2300,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "2298865d.ead76a",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "error",
+        "links": [
+            "7261a8e.7a74658",
+            "198c3565.4ea35b"
+        ],
+        "x": 635,
+        "y": 1400,
+        "wires": []
+    },
+    {
+        "id": "198c3565.4ea35b",
+        "type": "link in",
+        "z": "334c1143.5d81fe",
+        "name": "send mail",
+        "links": [
+            "4cc4f410.e28d3c",
+            "9abe1159.2100c",
+            "2298865d.ead76a"
+        ],
+        "x": 1995,
+        "y": 480,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9abe1159.2100c",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "error",
+        "links": [
+            "7261a8e.7a74658",
+            "198c3565.4ea35b"
+        ],
+        "x": 1435,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "88ab45f7.fc7e08",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "",
+        "links": [
+            "5c821604.817968",
+            "7261a8e.7a74658"
+        ],
+        "x": 1915,
+        "y": 960,
+        "wires": []
+    },
+    {
+        "id": "b28f6277.81758",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "error",
+        "links": [
+            "7261a8e.7a74658"
+        ],
+        "x": 1855,
+        "y": 1080,
+        "wires": []
+    },
+    {
+        "id": "f94d47a5.12f9f8",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "voice output",
+        "links": [
+            "7261a8e.7a74658"
+        ],
+        "x": 1405,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "7261a8e.7a74658",
+        "type": "link in",
+        "z": "334c1143.5d81fe",
+        "name": "voice output",
+        "links": [
+            "f94d47a5.12f9f8",
+            "88ab45f7.fc7e08",
+            "b28f6277.81758",
+            "80c55b3d.a5ffc8",
+            "ef04039c.378798",
+            "a4923aed.f91958",
+            "dcb4fb88.82a368",
+            "3863b809.28d988",
+            "edcd7ad9.e66638",
+            "4697322e.0d0b2c",
+            "c11dc24e.08a87",
+            "cefb038e.18fcc",
+            "bd473a0f.afbaf8",
+            "b19cf12.73b059",
+            "9abe1159.2100c",
+            "2298865d.ead76a",
+            "49cfb6c8.c0b768"
+        ],
+        "x": 1995,
+        "y": 420,
+        "wires": [
+            [
+                "9797dba5.8e2e68"
+            ]
+        ]
+    },
+    {
+        "id": "a4923aed.f91958",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "voice output",
+        "links": [
+            "7261a8e.7a74658"
+        ],
+        "x": 1165,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "dcb4fb88.82a368",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "voice output",
+        "links": [
+            "7261a8e.7a74658"
+        ],
+        "x": 1165,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "3863b809.28d988",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "voice output",
+        "links": [
+            "7261a8e.7a74658"
+        ],
+        "x": 1165,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "edcd7ad9.e66638",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "voice output",
+        "links": [
+            "7261a8e.7a74658"
+        ],
+        "x": 1855,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "3e448d18.f5fce2",
+        "type": "trigger",
+        "z": "334c1143.5d81fe",
+        "op1": "",
+        "op2": "Zwei Minuten um. Alarm",
+        "op1type": "nul",
+        "op2type": "str",
+        "duration": "2",
+        "extend": false,
+        "units": "min",
+        "reset": "",
+        "name": "alarm trigger (2min)",
+        "x": 1280,
+        "y": 740,
+        "wires": [
+            [
+                "f94d47a5.12f9f8",
+                "5b84597f.a3e4e8"
+            ]
+        ]
+    },
+    {
+        "id": "4cc4f410.e28d3c",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "error",
+        "links": [
+            "198c3565.4ea35b"
+        ],
+        "x": 2165,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "6aa5e6cb.54b9b8",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "add sender",
+        "rules": [
+            {
+                "t": "set",
+                "p": "from",
+                "pt": "msg",
+                "to": "German shepherd's pie",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2110,
+        "y": 540,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5b84597f.a3e4e8",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "ALARM: intruder detected",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "Intruder! - or really pissed wife :-(",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "ALARM: intruder detected",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2020,
+        "y": 860,
+        "wires": [
+            [
+                "4cc4f410.e28d3c"
+            ]
+        ]
+    },
+    {
+        "id": "b96f68d1.e77b48",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "numberOfPinsTried = 0",
+        "rules": [
+            {
+                "t": "set",
+                "p": "numberOfPinsTried",
+                "pt": "global",
+                "to": "0",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1360,
+        "y": 400,
+        "wires": [
+            [
+                "7b444ed6.2bc74"
+            ]
+        ]
+    },
+    {
+        "id": "9d72d083.127b2",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "numberOfPinsTried == 3",
+        "property": "numberOfPinsTried",
+        "propertyType": "global",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "3",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 1,
+        "x": 1730,
+        "y": 1140,
+        "wires": [
+            [
+                "232910f.05daff"
+            ]
+        ]
+    },
+    {
+        "id": "3489455f.c4192a",
+        "type": "debug",
+        "z": "334c1143.5d81fe",
+        "name": "",
+        "active": true,
+        "console": "false",
+        "complete": "payload",
+        "x": 2285,
+        "y": 545,
+        "wires": []
+    },
+    {
+        "id": "718a62aa.6fc40c",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "payload == '*'?",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "2a",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 1,
+        "x": 790,
+        "y": 600,
+        "wires": [
+            [
+                "3e2ad404.fa24fc"
+            ]
+        ]
+    },
+    {
+        "id": "3e2ad404.fa24fc",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "state = premaster",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "flow",
+                "to": "premaster",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "premaster",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1040,
+        "y": 600,
+        "wires": [
+            [
+                "4697322e.0d0b2c"
+            ]
+        ]
+    },
+    {
+        "id": "4697322e.0d0b2c",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "voice output",
+        "links": [
+            "7261a8e.7a74658"
+        ],
+        "x": 1165,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "4f0b4469.21896c",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "state == premaster?",
+        "property": "state",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "premaster",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 2,
+        "x": 490,
+        "y": 1160,
+        "wires": [
+            [
+                "e4223fcc.c070e"
+            ],
+            [
+                "25202679.911aba"
+            ]
+        ]
+    },
+    {
+        "id": "4b651880.fc9218",
+        "type": "subflow:f5b02b67.d538a8",
+        "z": "334c1143.5d81fe",
+        "name": "",
+        "x": 800,
+        "y": 860,
+        "wires": [
+            [
+                "76ff64da.b3050c"
+            ]
+        ]
+    },
+    {
+        "id": "c73ea42a.081de8",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "PIN == masterkey?",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "10082017",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 2,
+        "x": 980,
+        "y": 1160,
+        "wires": [
+            [
+                "3d5ed239.e9a22e"
+            ],
+            [
+                "e631be3c.cf93"
+            ]
+        ]
+    },
+    {
+        "id": "e4223fcc.c070e",
+        "type": "subflow:f5b02b67.d538a8",
+        "z": "334c1143.5d81fe",
+        "x": 750,
+        "y": 1160,
+        "wires": [
+            [
+                "c73ea42a.081de8"
+            ]
+        ]
+    },
+    {
+        "id": "3d5ed239.e9a22e",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "state = master",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "flow",
+                "to": "master",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "master",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1190,
+        "y": 1160,
+        "wires": [
+            [
+                "c11dc24e.08a87"
+            ]
+        ]
+    },
+    {
+        "id": "c11dc24e.08a87",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "voice output",
+        "links": [
+            "7261a8e.7a74658"
+        ],
+        "x": 1325,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "e631be3c.cf93",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "state = disarmed",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "flow",
+                "to": "disarmed",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "disarmed",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1200,
+        "y": 1200,
+        "wires": [
+            [
+                "cefb038e.18fcc"
+            ]
+        ]
+    },
+    {
+        "id": "cefb038e.18fcc",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "voice output",
+        "links": [
+            "7261a8e.7a74658"
+        ],
+        "x": 1325,
+        "y": 1200,
+        "wires": []
+    },
+    {
+        "id": "25202679.911aba",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "state == master?",
+        "property": "state",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "master",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 2,
+        "x": 470,
+        "y": 1280,
+        "wires": [
+            [
+                "b2366e35.2d906"
+            ],
+            [
+                "63188f0.632547"
+            ]
+        ]
+    },
+    {
+        "id": "b2366e35.2d906",
+        "type": "subflow:f5b02b67.d538a8",
+        "z": "334c1143.5d81fe",
+        "x": 740,
+        "y": 1280,
+        "wires": [
+            [
+                "4ec36381.5b946c",
+                "da0931d.635e1d"
+            ]
+        ]
+    },
+    {
+        "id": "4ec36381.5b946c",
+        "type": "file",
+        "z": "334c1143.5d81fe",
+        "name": "write to KEY file",
+        "filename": "/home/pi/keys",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "false",
+        "x": 990,
+        "y": 1280,
+        "wires": []
+    },
+    {
+        "id": "da0931d.635e1d",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "state = disarmed",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "flow",
+                "to": "disarmed",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "disarmed",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 990,
+        "y": 1320,
+        "wires": [
+            [
+                "bd473a0f.afbaf8"
+            ]
+        ]
+    },
+    {
+        "id": "bd473a0f.afbaf8",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "voice output",
+        "links": [
+            "7261a8e.7a74658"
+        ],
+        "x": 1105,
+        "y": 1320,
+        "wires": []
+    },
+    {
+        "id": "1c1c6f38.0d0d81",
+        "type": "inject",
+        "z": "334c1143.5d81fe",
+        "name": "numberOfPinsTried?",
+        "topic": "",
+        "payload": "numberOfPinsTried",
+        "payloadType": "global",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "x": 1120,
+        "y": 320,
+        "wires": [
+            [
+                "9503d851.f9c158"
+            ]
+        ]
+    },
+    {
+        "id": "6f58582c.963638",
+        "type": "comment",
+        "z": "334c1143.5d81fe",
+        "name": "Poll door state every 2 seconds",
+        "info": "",
+        "x": 410,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "6cbb6192.8333c",
+        "type": "file in",
+        "z": "334c1143.5d81fe",
+        "name": "KEY file",
+        "filename": "/home/pi/keys",
+        "format": "lines",
+        "chunk": false,
+        "sendError": false,
+        "x": 940,
+        "y": 980,
+        "wires": [
+            [
+                "31c327fb.069038",
+                "ba33abcc.3b0e38"
+            ]
+        ]
+    },
+    {
+        "id": "76ff64da.b3050c",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "store pin in flow",
+        "rules": [
+            {
+                "t": "set",
+                "p": "pin",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1030,
+        "y": 860,
+        "wires": [
+            [
+                "153727a9.c1ad98"
+            ]
+        ]
+    },
+    {
+        "id": "153727a9.c1ad98",
+        "type": "function",
+        "z": "334c1143.5d81fe",
+        "name": "numberOfPinsTried++",
+        "func": "var myTries = global.get(\"numberOfPinsTried\");\nglobal.set(\"numberOfPinsTried\", myTries+1);\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1250,
+        "y": 860,
+        "wires": [
+            [
+                "6cbb6192.8333c"
+            ]
+        ]
+    },
+    {
+        "id": "31c327fb.069038",
+        "type": "trigger",
+        "z": "334c1143.5d81fe",
+        "op1": "",
+        "op2": "end",
+        "op1type": "nul",
+        "op2type": "str",
+        "duration": "250",
+        "extend": true,
+        "units": "ms",
+        "reset": "",
+        "name": "",
+        "x": 1140,
+        "y": 1020,
+        "wires": [
+            [
+                "df7086aa.531438"
+            ]
+        ]
+    },
+    {
+        "id": "47304447.ffbd0c",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "keyValid = true",
+        "rules": [
+            {
+                "t": "set",
+                "p": "keyValid",
+                "pt": "flow",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1380,
+        "y": 980,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7b444ed6.2bc74",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "keyValid = true",
+        "rules": [
+            {
+                "t": "set",
+                "p": "keyValid",
+                "pt": "flow",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1560,
+        "y": 400,
+        "wires": [
+            [
+                "e587a2f.3bc306"
+            ]
+        ]
+    },
+    {
+        "id": "df7086aa.531438",
+        "type": "switch",
+        "z": "334c1143.5d81fe",
+        "name": "keyValid == true?",
+        "property": "keyValid",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 2,
+        "x": 1370,
+        "y": 1020,
+        "wires": [
+            [
+                "e31b1390.1ef7"
+            ],
+            [
+                "d634962f.11e3f8"
+            ]
+        ]
+    },
+    {
+        "id": "5c821604.817968",
+        "type": "link in",
+        "z": "334c1143.5d81fe",
+        "name": "initialise",
+        "links": [
+            "c438d520.0ecf98",
+            "e25b77e9.3ba8a8",
+            "88ab45f7.fc7e08"
+        ],
+        "x": 1195,
+        "y": 420,
+        "wires": [
+            [
+                "b96f68d1.e77b48"
+            ]
+        ]
+    },
+    {
+        "id": "232910f.05daff",
+        "type": "change",
+        "z": "334c1143.5d81fe",
+        "name": "Pin dreimal falsch",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "Pin dreimal falsch. Alarm",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "reset",
+                "pt": "msg",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1950,
+        "y": 1140,
+        "wires": [
+            [
+                "5b84597f.a3e4e8",
+                "6b467a74.452004",
+                "49cfb6c8.c0b768"
+            ]
+        ]
+    },
+    {
+        "id": "49cfb6c8.c0b768",
+        "type": "link out",
+        "z": "334c1143.5d81fe",
+        "name": "error",
+        "links": [
+            "7261a8e.7a74658"
+        ],
+        "x": 2135,
+        "y": 1140,
+        "wires": []
+    },
+    {
+        "id": "d387ead3.d01188",
+        "type": "debug",
+        "z": "334c1143.5d81fe",
+        "name": "",
+        "active": true,
+        "console": "false",
+        "complete": "false",
+        "x": 490,
+        "y": 421,
+        "wires": []
+    },
+    {
+        "id": "ff344068.d0eaa",
+        "type": "serial-port",
+        "z": "",
+        "serialport": "/dev/serial0",
+        "serialbaud": "1200",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "newline": "1",
+        "bin": "false",
+        "out": "count",
+        "addchar": false
+    }
+]
