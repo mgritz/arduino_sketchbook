@@ -76,6 +76,7 @@ bool beeper_active = false;
 void setup_status_leds() {
   pinMode(sled_rd, OUTPUT);
   pinMode(sled_ye, OUTPUT);
+  pinMode(beeper, OUTPUT);
 }
 
 void flash_led(int led, int code, int interval) {
@@ -101,9 +102,9 @@ void operate_status_led(){
       flash_led(sled_rd, 1, 100);
     }
     if (beeper_active){
-      analogWrite(beeper, 127);
+      digitalWrite(beeper, HIGH);
       delay(250);
-      analogWrite(beeper, 0);
+      digitalWrite(beeper, LOW);
     }
     next_flash = millis() + LED_UPDATE_CYCLE;
   }
