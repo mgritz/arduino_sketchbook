@@ -1,3 +1,5 @@
+#include <Wire.h>
+#include <SPI.h>
 #include <Adafruit_PN532.h>
 
 /*
@@ -207,7 +209,7 @@ void loop() {
 
   // check if door has been opened
   if ((!door_was_open) && (door_is_open())){
-    char resp[2] = {door_sm_ack, 0x01};
+    uint8_t resp[2] = {door_sm_ack, 0x01};
     Serial.write(resp, 2);
   }
   door_was_open = door_is_open();
@@ -219,7 +221,7 @@ void loop() {
 
     if(rx == door_ms_alive){
       // keepalive from server, respond with door state
-        char resp[2] = {door_sm_ack, 0x00};
+        uint8_t resp[2] = {door_sm_ack, 0x00};
         resp[1] = door_is_open();
         Serial.write(resp, 2);
 
