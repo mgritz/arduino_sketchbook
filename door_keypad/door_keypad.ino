@@ -100,9 +100,6 @@ void operate_status_led(){
     // keepalive timed out.
     if (serial_keepalive_next_timeout < millis())
       digitalWrite(sled_rd, HIGH);
-    else{
-      flash_led(sled_rd, 1, 100);
-    }
     next_flash = millis() + LED_UPDATE_CYCLE;
   }
 }
