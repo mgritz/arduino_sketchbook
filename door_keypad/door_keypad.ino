@@ -73,7 +73,6 @@ const int sled_rd = 13;
 const int sled_ye = 4;
 
 const int beeper = 14;
-bool beeper_active = false;
 
 void setup_status_leds() {
   pinMode(sled_rd, OUTPUT);
@@ -102,11 +101,6 @@ void operate_status_led(){
       digitalWrite(sled_rd, HIGH);
     else{
       flash_led(sled_rd, 1, 100);
-    }
-    if (beeper_active){
-      digitalWrite(beeper, HIGH);
-      delay(250);
-      digitalWrite(beeper, LOW);
     }
     next_flash = millis() + LED_UPDATE_CYCLE;
   }
@@ -195,7 +189,6 @@ void loop() {
   if (keycode != -1){
     Serial.write(keycode);
     flash_led(sled_ye, 1, 50);
-    beeper_active = false;
   }
 
   // handle NFC card being placed on reader
@@ -235,9 +228,6 @@ void loop() {
         flash_led(sled_ye, 8, 50);
       } else if (rx == 1) {
         flash_led(sled_ye, 2, 250);
-        beeper_active = false;
-      } else if (rx == 2) {
-        beeper_active = true;
       }
       next_is_key_byte = false;
     }
