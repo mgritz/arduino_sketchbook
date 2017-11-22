@@ -106,6 +106,28 @@ void operate_status_led(){
   }
 }
 
+void handle_ui_code(const int pin, const int cmd) {
+  switch (cmd) {
+    case 0:
+    digitalWrite(pin, LOW);
+    break;
+
+    case 0xFF:
+    digitalWrite(pin, HIGH);
+    break;
+
+    default:{
+      // high nibble is period duration given in multiples of 50ms.
+      // however, flash_led requries half-period as parameter.
+      int period = ((cmd >> 4) & 0xF) * 25;
+      // low nibble is repetition counter.
+      int times = cmd & 0xF;
+      flash_led(pin, times, period);
+    }
+
+  }
+}
+
 //##################################################
 //################# Door contact ###################
 const int door_switch = 2;
@@ -224,11 +246,7 @@ void loop() {
       // door key result, display as LED code
       next_is_key_byte = true;
     } else if (next_is_key_byte){
-      if (rx == 0){      
-        flash_led(sled_ye, 8, 50);
-      } else if (rx == 1) {
-        flash_led(sled_ye, 2, 250);
-      }
+      handle_ui_code(sled_ye, rx);
       next_is_key_byte = false;
     }
   }
