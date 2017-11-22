@@ -57,6 +57,7 @@ const byte door_ms_alive = 'S';   // SYN, keepalive
 const byte door_sm_ack = 'K';     // ACK, + door flag
 // keys are represented by their actual ASCII char
 const byte door_ms_key_res = 'R'; // key eval + flag
+const byte door_ms_beep_cmd = 'Q';// beeper + state
 //+++++++++++++++++ Driver +++++++++++++++++++++++++
 // We are running the standard serial interface 
 // driver @ 
@@ -201,6 +202,7 @@ void setup() {
 void loop() {
   static bool door_was_open = false;
   static bool next_is_key_byte = false;
+  static bool next_is_beep_byte = false;
   
   // show status LED if needed, take care of
   // server disconnecting
@@ -211,6 +213,7 @@ void loop() {
   if (keycode != -1){
     Serial.write(keycode);
     flash_led(sled_ye, 1, 50);
+    digitalWrite(beeper, LOW);
   }
 
   // handle NFC card being placed on reader
@@ -248,6 +251,12 @@ void loop() {
     } else if (next_is_key_byte){
       handle_ui_code(sled_ye, rx);
       next_is_key_byte = false;
+    } else if (rx == door_ms_beep_cmd) {
+      // beeper command
+      next_is_beep_byte = true;
+    } else if (next_is_beep_byte) {
+      handle_ui_code(beeper, rx);
+      next_is_beep_byte = false;
     }
   }
   delay(2);
