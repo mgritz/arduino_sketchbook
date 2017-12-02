@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <Adafruit_PN532.h>
+#include <avr/wdt.h>
 
 /*
 
@@ -57,6 +58,7 @@ const byte door_ms_alive = 'S';   // SYN, keepalive
 const byte door_sm_ack = 'K';     // ACK, + door flag
 // keys are represented by their actual ASCII char
 const byte door_ms_key_res = 'R'; // key eval + flag
+const byte door_ms_reboot = 'B';  // Reboot command
 //+++++++++++++++++ Driver +++++++++++++++++++++++++
 // We are running the standard serial interface 
 // driver @ 
@@ -172,6 +174,14 @@ uint32_t nfc_waitCard(){
 }
 
 //##################################################
+//################# SW REBOOT ######################
+void reboot_now() {
+  wdt_enable(WDTO_15MS);
+  for(;;);
+  // infinite loop .. for 15ms.
+}
+
+//##################################################
 //################# SETUP ##########################
 void setup() {
   Serial.begin(SERIAL_BOUDRATE);
@@ -197,6 +207,10 @@ void loop() {
     flash_led(sled_ye, 1, 50);
     beeper_active = false;
   }
+
+  // Reboot on key press
+  if (keycode == door_ms_reboot)
+    reboot_now();
 
   // handle NFC card being placed on reader
   uint32_t nfc_key = nfc_waitCard();
@@ -240,6 +254,8 @@ void loop() {
         beeper_active = true;
       }
       next_is_key_byte = false;
+    } else if (rx == door_ms_reboot) {
+      reboot_now();
     }
   }
   delay(2);
