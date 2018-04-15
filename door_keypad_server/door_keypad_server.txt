@@ -1,5 +1,12 @@
 ﻿[
     {
+        "id": "6a56ad93.df0a9c",
+        "type": "tab",
+        "label": "Alarmanlage Main",
+        "disabled": false,
+        "info": ""
+    },
+    {
         "id": "3693509f.dd0fb",
         "type": "subflow",
         "name": "Read Keypad or NFC",
@@ -27,6 +34,20 @@
                 ]
             }
         ]
+    },
+    {
+        "id": "e827ab82.069248",
+        "type": "serial-port",
+        "z": "",
+        "serialport": "/dev/serial0",
+        "serialbaud": "1200",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "newline": "1",
+        "bin": "false",
+        "out": "count",
+        "addchar": false
     },
     {
         "id": "f476ee9b.452028",
@@ -132,13 +153,6 @@
                 "f476ee9b.452028"
             ]
         ]
-    },
-    {
-        "id": "6a56ad93.df0a9c",
-        "type": "tab",
-        "label": "Alarmanlage Main",
-        "disabled": false,
-        "info": ""
     },
     {
         "id": "1dd7b397.e3862c",
@@ -803,7 +817,7 @@
         "active": true,
         "console": "false",
         "complete": "false",
-        "x": 1270,
+        "x": 1290,
         "y": 260,
         "wires": []
     },
@@ -2453,19 +2467,5 @@
                 "9b1f58b0.acf3"
             ]
         ]
-    },
-    {
-        "id": "e827ab82.069248",
-        "type": "serial-port",
-        "z": "",
-        "serialport": "/dev/serial0",
-        "serialbaud": "1200",
-        "databits": "8",
-        "parity": "none",
-        "stopbits": "1",
-        "newline": "1",
-        "bin": "false",
-        "out": "count",
-        "addchar": false
     }
 ]
