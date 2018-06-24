@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "WIN-Arduino",
+            "includePath": [
+                "${workspace_root}",
+                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino",
+                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries",
+                "D:\\Eigene Dateien\\Eigene Dokumente\\Arduino\\libraries"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": false,
+                "path": [
+                "${workspace_root}",
+                    "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino",
+                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries",
+                "D:\\Eigene Dateien\\Eigene Dokumente\\Arduino\\libraries"
+                ]
+            },
+            "intelliSenseMode": "msvc-x64"
+        }
+    ],
+    "version": 4
+}
