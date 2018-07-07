@@ -73,3 +73,24 @@ void WireLCD::writeLine(const uint8_t* buf, const uint8_t len, const uint8_t lin
     }
   }
 }
+
+void WireLCD::percentBar(const uint8_t line, const uint8_t percentage, 
+                          const char bar_symbol, const bool show_number)
+{
+  uint8_t usable_cols = cols;
+  if (show_number)
+    usable_cols -= 4;
+  const uint8_t markers = percentage * usable_cols / 100;
+  lcd_byte(LINECODES[line], LCD_CMD);
+  for (unsigned int i = 0; i < markers; ++i)
+    lcd_byte(bar_symbol, LCD_CHR);
+  for (unsigned int i = markers; i < usable_cols; ++i)
+    lcd_byte(' ', LCD_CHR);
+  if (show_number) {
+    const String numstring = String(percentage, DEC) + '%';
+    for (unsigned int i = 0; i < 4 - numstring.length(); ++i)
+      lcd_byte(' ', LCD_CHR);
+    for(unsigned int i = 0; i < numstring.length(); ++i)
+      lcd_byte(numstring.c_str()[i], LCD_CHR);
+  }
+}

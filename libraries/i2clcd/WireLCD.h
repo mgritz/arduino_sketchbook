@@ -8,6 +8,9 @@ public:
   WireLCD(uint8_t addr, uint8_t lines = 2, uint8_t cols = 16);
   void init();
   void writeLine(const uint8_t* buf, const uint8_t len, const uint8_t line);
+
+  void percentBar(const uint8_t line, const uint8_t percentage,
+                  const char bar_symbol = 0xFF, const bool show_number = false);
 private:
   uint8_t address;
   uint8_t lines;
