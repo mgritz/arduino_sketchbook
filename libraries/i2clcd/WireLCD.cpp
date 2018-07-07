@@ -10,7 +10,7 @@
 #define E_DELAY 500
 
 // LCD RAM addresses for the four lines.
-const uint8_t LINECODES[] = { 0x80, 0xC0, 0x94, 0xD0 };
+const uint8_t LINECODES[] = { 0x80, 0xC0, 0x94, 0xD4 };
 
 
 WireLCD::WireLCD(uint8_t addr)
