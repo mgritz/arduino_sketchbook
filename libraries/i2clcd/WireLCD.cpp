@@ -13,11 +13,9 @@
 const uint8_t LINECODES[] = { 0x80, 0xC0, 0x94, 0xD4 };
 
 
-WireLCD::WireLCD(uint8_t addr)
+WireLCD::WireLCD(uint8_t addr, uint8_t lines, uint8_t cols)
+  : address(addr), lines(lines), cols(cols)
 {
-  address = addr;
-  lines = 2;
-  cols = 16;
 }
 
 void WireLCD::init()

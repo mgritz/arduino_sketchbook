@@ -1,7 +1,7 @@
 #include <WireLCD.h>
 #include <Wire.h>
 
-WireLCD lcd(0x26);
+WireLCD lcd(0x27, 4, 20);
 
 void setup(){
   Wire.begin();
