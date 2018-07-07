@@ -11,13 +11,25 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": false,
                 "path": [
-                "${workspace_root}",
+                    "${workspace_root}",
                     "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino",
-                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries",
-                "D:\\Eigene Dateien\\Eigene Dokumente\\Arduino\\libraries"
+                    "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries",
+                    "D:\\Eigene Dateien\\Eigene Dokumente\\Arduino\\libraries"
                 ]
             },
             "intelliSenseMode": "msvc-x64"
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": false,
+                "path": [
+                    "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino"
+                ]
+            }
         }
     ],
     "version": 4

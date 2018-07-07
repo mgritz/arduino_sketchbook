@@ -2,5 +2,6 @@
     "port": "COM3",
     "board": "arduino:avr:mega",
     "configuration": "cpu=atmega2560",
-    "sketch": "rtc_tester\\rtc_tester.ino"
+    "sketch": "rtc_tester\\rtc_tester.ino",
+    "output": "../build"
 }
