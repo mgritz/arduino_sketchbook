@@ -1,6 +1,23 @@
 {
     "configurations": [
         {
+            "name": "TUX-Arduino",
+            "includePath": [
+                "/usr/share/arduino/hardware/arduino/cores/arduino",
+                "/usr/share/arduino/libraries",
+                "~/localstorage/arduino_sketchbook/libraries"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": false,
+                "path": [
+                    "/usr/share/arduino/hardware/arduino/cores/arduino",
+                    "/usr/share/arduino/libraries",
+                    "~/localstorage/arduino_sketchbook/libraries"
+                ]
+            },
+            "intelliSenseMode": "clang-x64"
+        },
+        {
             "name": "WIN-Arduino",
             "includePath": [
                 "${workspace_root}",
