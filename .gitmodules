@@ -1,0 +1,3 @@
+[submodule "eps8266-led-lowlight"]
+	path = eps8266-led-lowlight
+	url = https://github.com/mgritz/eps8266-led-lowlight.git
